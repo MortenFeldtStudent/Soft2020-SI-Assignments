@@ -38,7 +38,7 @@ public class ClientTCP {
 
         try (Scanner cin = new Scanner(System.in);
              PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
-             Scanner in = new Scanner(socket.getInputStream());)
+             Scanner in = new Scanner(socket.getInputStream()))
         {
             System.out.println("Client up and running");
             System.out.println("Send a message or \"stop\" to close connection");
@@ -48,6 +48,12 @@ public class ClientTCP {
             {
                 // Send the user message to the server
                 out.println(request);
+
+                // Stop client if "stop" command entered
+                if(request.equals("stop"))
+                {
+                    System.exit(0);
+                }
 
                 // Get the response of the Server and print it out to the Client
                 response = in.nextLine();

@@ -5,16 +5,19 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+@SuppressWarnings("ALL")
 public class ServerTCP {
 
     public static final int PORT = 6666;
     public static ServerSocket serverSocket = null; // Server gets found
     public static Socket openSocket = null;         // Server communicates with the client
+    public static ExecutorService executor = Executors.newFixedThreadPool(5); //Threadpool
 
-    public static Socket configureServer() throws UnknownHostException, IOException
+    public static Socket configureServer() throws IOException
     {
         // get server's own IP address
         String serverIP = InetAddress.getLocalHost().getHostAddress();
@@ -50,7 +53,7 @@ public class ServerTCP {
             if(request.equals("stop"))
             {
                 out.println("Good bye, client!");
-                System.out.println("Log: " + request + " client!");
+                System.out.println("Log: " + request + " command from client!");
                 break;
             }
             else
@@ -64,26 +67,38 @@ public class ServerTCP {
         }
     }
 
-    public static void main(String[] args) throws IOException
-    {
-        try
-        {
-            openSocket = configureServer();
-            connectClient(openSocket);
-        }
-        catch(Exception e)
-        {
-            System.out.println(" Connection fails: " + e);
-        }
-        finally
-        {
-            openSocket.close();
-            System.out.println("Connection to client closed");
+    public static class WorkingThread implements Runnable {
 
-            serverSocket.close();
-            System.out.println("Server port closed");
+        @Override
+        public void run() {
+            try{
+                connectClient(openSocket);
+            }
+            catch(Exception e)
+            {
+                System.out.println(" Connection fails: " + e);
+            }
+            finally
+            {
+                try {
+                    openSocket.close();
+                } catch (IOException e) {
+                    System.out.println("Connection to client closed");
+                }
+            }
         }
+    }
 
+    public static void main(String[] args) {
+        while(true){
+            try {
+                openSocket = configureServer();
+                executor.submit(new WorkingThread());
+                serverSocket.close();
+            } catch (Exception e) {
+                System.out.println(" Connection fails: " + e);
+            }
+        }
     }
 
 }
