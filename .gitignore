@@ -1,5 +1,8 @@
 ### Intellij ###
 
+# Exclude Test module (Morten own test file)
+Test/
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
